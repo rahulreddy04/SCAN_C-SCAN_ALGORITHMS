@@ -1,0 +1,437 @@
+import java.util.*; 
+class Main { 
+static int right_limit=-1,left_limit=-1; 
+static Map<Integer,List<String>> mp=new HashMap<>(); 
+public static void main(String args[]) 
+{ 
+Scanner sc=new Scanner(System.in); 
+System.out.print("Enter no. of Total Cylinders : "); 
+int disk_size=sc.nextInt(); 
+System.out.print("\nEnter Previous Read-Write-Head Position : "); 
+int prev_head=sc.nextInt(); 
+System.out.print("\nEnter Current Read-Write-Head Position : "); 
+int curr_head=sc.nextInt(); 
+System.out.print("\nEnter no. of Requests : "); 
+int n=sc.nextInt(); 
+int request_arr[]=new int[n]; 
+System.out.println("Enter Process Name and Requests of Disk Queue : "); 
+int i=0; 
+while(i<n) 
+{ 
+String name=sc.next(); 
+int req=sc.nextInt(); 
+if(req<0 || req>=disk_size) 
+        { 
+            System.out.println("Invalid Cylinder: "+req+" is outside disk bound range - [0 to "+(disk_size-1)+"].Request Ignored");
+            System.out.println("Enter correct request"); 
+            continue; 
+        } 
+        if(!mp.containsKey(req)) 
+        { 
+            List<String> temp=new ArrayList<>(); 
+            temp.add(name); 
+            mp.put(req,temp); 
+        } 
+        else 
+        { 
+            mp.get(req).add(name); 
+        } 
+        request_arr[i]=req; 
+        i++; 
+    } 
+    String direction=""; 
+    if(prev_head<=curr_head) 
+    { 
+        direction="Forward"; 
+    } 
+    else 
+    { 
+        direction="Backward"; 
+    } 
+    System.out.println("\n\nDirection of Read-Write-Head : "+direction+" direction."); 
+    scan(request_arr,curr_head,direction,disk_size); 
+    cscan(request_arr,curr_head,direction,disk_size); 
+ } 
+ static void scan(int request_arr[],int curr_head,String direction,int disk_size) 
+{ 
+    Arrays.sort(request_arr); 
+    int index=-1; 
+    for(int i=0;i<request_arr.length;i++) 
+    { 
+        if(request_arr[i]>=curr_head) 
+        { 
+            index=i; 
+            break; 
+        } 
+    } 
+    int n=request_arr.length; 
+    if(index==-1) 
+    { 
+        if(direction.equals("Forward")) 
+        { 
+            index=n; 
+        } 
+        else 
+        { 
+            index=-1; 
+        } 
+    } 
+    int seek_time=0; 
+    List<Integer> seek_sequence=new ArrayList<>(); 
+    seek_sequence.add(curr_head); 
+    if(direction.equals("Forward")) 
+    { 
+        for(int i=index;i<n;i++) 
+        { 
+            seek_sequence.add(request_arr[i]); 
+            seek_time=seek_time+Math.abs(curr_head-request_arr[i]); 
+            curr_head=request_arr[i]; 
+        } 
+        if(request_arr[n-1]!=disk_size-1) 
+        { 
+            seek_sequence.add(disk_size-1); 
+            seek_time=seek_time+Math.abs(curr_head-(disk_size-1)); 
+            curr_head=disk_size-1; 
+        } 
+        for(int i=index-1;i>=0;i--) 
+        { 
+            seek_sequence.add(request_arr[i]); 
+            seek_time=seek_time+Math.abs(curr_head-request_arr[i]); 
+            curr_head=request_arr[i]; 
+        } 
+    } 
+    else 
+    { 
+        for(int i=index-1;i>=0;i--) 
+        { 
+            seek_sequence.add(request_arr[i]); 
+            seek_time=seek_time+Math.abs(curr_head-request_arr[i]); 
+            curr_head=request_arr[i]; 
+        } 
+        if(request_arr[0]!=0) 
+        { 
+            seek_sequence.add(0); 
+            seek_time=seek_time+Math.abs(curr_head-(0)); 
+            curr_head=0; 
+        } 
+        for(int i=index;i<n;i++) 
+        { 
+            seek_sequence.add(request_arr[i]); 
+            seek_time=seek_time+Math.abs(curr_head-request_arr[i]); 
+            curr_head=request_arr[i]; 
+        } 
+    } 
+    System.out.println("\n\n\t\t\t ***** SCAN DISK SCHEDULING ALGORITHM ***** \t\t\t\n"); 
+     int arr[]=new int[seek_sequence.size()]; 
+     System.out.print("\nSeek Sequence for SCAN : "); 
+     for(int i=0;i<seek_sequence.size();i++) 
+     { 
+         if(i<seek_sequence.size()-1) 
+         System.out.print(seek_sequence.get(i)+" --> "); 
+         else 
+         System.out.println(seek_sequence.get(i)); 
+         arr[i]=seek_sequence.get(i); 
+     } 
+     System.out.print("\t\t\t "); 
+     List<String> t=new ArrayList<>(); 
+     t.add("-"); 
+     for(int i=0;i<seek_sequence.size();i++) 
+     { 
+         if(i==0) 
+         System.out.print("head --> "); 
+         else if(i<seek_sequence.size()-1) 
+         System.out.print(mp.getOrDefault(seek_sequence.get(i),t)+" --> "); 
+         else 
+         System.out.println(mp.getOrDefault(seek_sequence.get(i),t)); 
+     } 
+     System.out.println("\nSeek time for SCAN : "+seek_time+" units."); 
+     System.out.println("\n\t\t\t\t SCAN Scheduling Table \t\t\t\t\n"); 
+     String algo="scan"; 
+     table(arr,disk_size,algo); 
+     System.out.println("\n\t\t\t\t SCAN Process Sequence Chart \t\t\t\n\n"); 
+     display(arr,disk_size); 
+} 
+ static void cscan(int request_arr[],int curr_head,String direction,int disk_size) 
+ { 
+     Arrays.sort(request_arr); 
+     int index=-1; 
+     for(int i=0;i<request_arr.length;i++) 
+     { 
+         if(request_arr[i]>=curr_head) 
+         { 
+             index=i; 
+             break; 
+         } 
+     } 
+     int n=request_arr.length,c=0; 
+     if(index==-1) 
+     { 
+         if(direction.equals("Forward")) 
+         { 
+             index=n; 
+         } 
+         else 
+         { 
+             index=-1; 
+         } 
+     } 
+     int seek_time=0,current=curr_head; 
+     if(request_arr[n-1]==disk_size-1) 
+     { 
+         right_limit=disk_size-1; 
+     } 
+     if(request_arr[0]==0) 
+     { 
+         left_limit=0; 
+     } 
+     int size=0; 
+     if(right_limit==-1 && left_limit==-1) 
+     size=2; 
+     else if(right_limit==-1 || left_limit==-1) 
+     size=1; 
+     else 
+     size=0; 
+     int seek_sequence[]=new int[n+size+1]; 
+     seek_sequence[0]=curr_head; 
+     c=1; 
+     if(direction.equals("Forward")) 
+     { 
+        for(int i=index;i<n;i++) 
+        { 
+            current=request_arr[i]; 
+            seek_time=seek_time+Math.abs(curr_head-current); 
+            seek_sequence[c]=request_arr[i]; 
+            c++; 
+            curr_head=current; 
+        } 
+        if(request_arr[n-1]!=disk_size-1) 
+        { 
+            current=disk_size-1; 
+             
+            seek_time=seek_time+Math.abs(curr_head-current); 
+            if(right_limit==-1) 
+            { 
+            seek_sequence[c]=disk_size-1; 
+            c++; 
+            } 
+            if(left_limit==-1) 
+            { 
+            seek_sequence[c]=0; 
+            c++; 
+            } 
+            curr_head=0; 
+        } 
+        else if(request_arr[n-1]==disk_size-1) 
+        { 
+            current=disk_size-1; 
+            if(right_limit==-1) 
+            { 
+            seek_sequence[c]=disk_size-1; 
+            c++; 
+            } 
+            if(left_limit==-1) 
+            { 
+            seek_sequence[c]=0; 
+            c++; 
+            } 
+            curr_head=0; 
+        } 
+        for(int i=0;i<index;i++) 
+        { 
+            current=request_arr[i]; 
+            seek_time=seek_time+Math.abs(curr_head-current); 
+            seek_sequence[c]=request_arr[i]; 
+            c++; 
+            curr_head=current; 
+        } 
+     } 
+     else if(direction.equals("Backward")) 
+     { 
+         for(int i=index-1;i>=0;i--) 
+        { 
+            current=request_arr[i]; 
+            seek_time=seek_time+Math.abs(curr_head-current); 
+            seek_sequence[c]=request_arr[i]; 
+            c++; 
+            curr_head=current; 
+        } 
+        if(request_arr[0]!=0) 
+        { 
+            current=0; 
+             
+            seek_time=seek_time+Math.abs(curr_head-current); 
+            if(left_limit==-1){ 
+            seek_sequence[c]=0; 
+            c++; 
+            } 
+            if(right_limit==-1){ 
+            seek_sequence[c]=disk_size-1; 
+            c++; 
+            } 
+            curr_head=disk_size-1; 
+        } 
+        else 
+        { 
+            current=0; 
+             
+            if(left_limit==-1){ 
+            seek_sequence[c]=0; 
+            c++; 
+            } 
+            if(right_limit==-1){ 
+            seek_sequence[c]=disk_size-1; 
+            c++; 
+            } 
+            curr_head=disk_size-1; 
+        } 
+        for(int i=n-1;i>=index;i--) 
+        { 
+            current=request_arr[i]; 
+            seek_time=seek_time+Math.abs(curr_head-current); 
+            seek_sequence[c]=request_arr[i]; 
+            c++; 
+            curr_head=current; 
+        } 
+     } 
+     System.out.println("\n\n\t\t\t ***** C-SCAN DISK SCHEDULING ALGORITHM ***** \t\t\t\n"); 
+     System.out.print("\nSeek Sequence for C-SCAN : "); 
+     for(int i=0;i<seek_sequence.length;i++) 
+     { 
+         if(i<seek_sequence.length-1) 
+         System.out.print(seek_sequence[i]+" --> "); 
+         else 
+         System.out.println(seek_sequence[i]); 
+     } 
+     System.out.print("\t\t\t"); 
+     List<String> t=new ArrayList<>(); 
+     t.add("-"); 
+     for(int i=0;i<seek_sequence.length;i++) 
+     { 
+         if(i==0) 
+         { 
+             System.out.print(" head --> "); 
+         } 
+         else if(i<seek_sequence.length-1) 
+         System.out.print(mp.getOrDefault(seek_sequence[i],t)+" --> "); 
+         else 
+         System.out.println(mp.getOrDefault(seek_sequence[i],t)); 
+     } 
+     System.out.println("\nSeek time for C-SCAN : "+seek_time+" units."); 
+     String algo="c-scan"; 
+     System.out.println("\n\t\t\t\t C-SCAN Scheduling Table \t\t\t\t\n"); 
+     table(seek_sequence,disk_size,algo); 
+     System.out.println("\n\t\t\t\t C-SCAN Process Sequence Chart \t\t\t\t\n\n"); 
+     display(seek_sequence,disk_size); 
+ }  
+ static void table(int arr[],int disk_size,String algo) 
+ { 
+     System.out.println("\nStep \t\t Process \t Move From \t Move To \t Distance \t Direction \t\t"); 
+     System.out.println("------------------------------------------------------------------------------------------"); 
+     int dis=0,sum=0; 
+     String direction=""; 
+     List<String> def=new ArrayList<>(); 
+     def.add("-"); 
+     for(int i=0;i<arr.length-1;i++) 
+     { 
+         if(arr[i]<arr[i+1]) 
+         { 
+             direction="Forward"; 
+         } 
+         else if(arr[i]>arr[i+1]) 
+         { 
+             direction="Backward"; 
+         } 
+         else 
+         { 
+             direction="same"; 
+         } 
+         if(arr[i]==disk_size-1 && arr[i+1]==0 && left_limit==-1 && right_limit==-1 
+&& algo.equals("c-scan")) 
+         { 
+             dis=0; 
+             direction="jump"; 
+         } 
+         else if(arr[i]==0 && arr[i+1]==disk_size-1 && left_limit==-1 && right_limit==
+1 && algo.equals("c-scan")) 
+         { 
+             dis=0; 
+             direction="jump"; 
+         } 
+         else if(arr[i]==disk_size-1 && arr[i+1]==0 && (left_limit!=-1 || right_limit!=-1) 
+&& algo.equals("c-scan")) 
+         { 
+            dis=0; 
+            direction="Backward(jump)"; 
+         } 
+         else if(arr[i]==0 && arr[i+1]==disk_size-1 && (left_limit!=-1 || right_limit!=-1) 
+&& algo.equals("c-scan")) 
+         { 
+             dis=0; 
+             direction="Forward(jump)"; 
+         } 
+         else 
+         dis=Math.abs(arr[i]-arr[i+1]); 
+         System.out.println(" "+(i+1)+" \t\t "+mp.getOrDefault(arr[i+1],def)+" \t\t "+arr[i]+" \t\t "+arr[i+1]+" \t\t "+dis+" \t\t "+direction+" \t\t "); 
+         sum+=dis; 
+     } 
+     System.out.println(" ".repeat(63)+"___________\n"); 
+     System.out.print(" ".repeat(51)+"Seek Distance = "+sum+" units.\n"); 
+     System.out.print(" ".repeat(63)+"___________\n\n"); 
+ } 
+ static void display(int arr[],int n) 
+ { 
+     //System.out.println("\n\t\t\t Process Sequence Chart \t\t\t"); 
+     int scale=n/10; 
+     for(int i=0;i<n;i+=scale) 
+     { 
+         System.out.printf("%-10d",i); 
+     } 
+     System.out.print(n-1); 
+     System.out.println(); 
+     for(int i=0;i<=10;i++) 
+     { 
+         System.out.printf("|"); 
+         System.out.print("---------"); 
+     } 
+     System.out.println(); 
+     int pos=0; 
+     pos=(int)((arr[0]/(double)scale)*10); 
+     for(int j=0;j<pos;j++) 
+     { 
+         System.out.print(" "); 
+     } 
+     if(arr[0]<arr[1]) 
+     System.out.println(arr[0]+"(head)-->"); 
+     else if(arr[0]>arr[1]) 
+     System.out.println("<--"+arr[0]+"(head)"); 
+     else 
+     System.out.println(arr[0]+"--"+"(head)"); 
+     for(int i=1;i<arr.length-1;i++) 
+     { 
+         pos=(int)((arr[i]/(double)scale)*10); 
+         for(int j=0;j<pos;j++) 
+         { 
+             System.out.print(" "); 
+         } 
+         if(arr[i]<arr[i+1]) 
+         System.out.println(arr[i]+"-->"); 
+         else if(arr[i]>arr[i+1]) 
+         System.out.println("<--"+arr[i]); 
+         else 
+         System.out.println(arr[i]+"--"); 
+     } 
+     pos=(int)((arr[arr.length-1]/(double)scale)*10); 
+     for(int j=0;j<pos;j++) 
+         { 
+             System.out.print(" "); 
+         } 
+     if(arr.length>2){ 
+     if(arr[arr.length-2]<arr[arr.length-1]) 
+     System.out.println(arr[arr.length-1]+"-->"); 
+     else if(arr[arr.length-2]>arr[arr.length-1]) 
+     System.out.println("<--"+arr[arr.length-1]);  
+     else 
+     System.out.println(arr[arr.length-1]+"--"); 
+     } 
+ } 
+} 
